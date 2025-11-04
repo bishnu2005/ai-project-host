@@ -1,0 +1,106 @@
+version: "3.9"
+
+services:
+  vad:
+    build: ./services/vad
+    container_name: eva-vad
+    ports:
+      - "8001:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./sample_audio:/app/sample_audio
+    restart: unless-stopped
+
+  diarization:
+    build: ./services/diarization
+    container_name: eva-diarization
+    ports:
+      - "8002:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - HF_TOKEN=${HF_TOKEN}        
+    volumes:
+      - ./models:/models           
+    restart: unless-stopped
+
+  stt:
+    build: ./services/stt
+    container_name: eva-stt
+    ports:
+      - "8003:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - STT_MODEL_SIZE=${STT_MODEL_SIZE}  
+    volumes:
+      - ./sample_audio:/app/sample_audio
+    restart: unless-stopped
+
+  emotion:
+    build: ./services/emotion
+    container_name: eva-emotion
+    ports:
+      - "8004:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./services/emotion/models:/models   
+    restart: unless-stopped
+
+  text_sentiment:
+    build: ./services/text_sentiment
+    container_name: eva-text
+    ports:
+      - "8005:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TRANSFORMERS_OFFLINE=0
+    restart: unless-stopped
+
+  fusion:
+    build: ./services/fusion
+    container_name: eva-fusion
+    ports:
+      - "8006:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+  llm:
+    build: ./services/llm
+    container_name: eva-llm
+    ports:
+      - "8007:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LLM_BACKEND=${LLM_BACKEND}         
+      - HF_TOKEN=${HF_TOKEN}               
+      - LLAMA_MODEL_ID=${LLAMA_MODEL_ID}   
+    restart: unless-stopped
+
+  orchestrator:
+    build: ./services/orchestrator
+    container_name: eva-orchestrator
+    ports:
+      - "8010:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - VAD_URL=http://vad:8000
+      - DIAR_URL=http://diarization:8000
+      - STT_URL=http://stt:8000
+      - EMO_URL=http://emotion:8000
+      - TEXT_URL=http://text_sentiment:8000
+      - FUSION_URL=http://fusion:8000
+      - LLM_URL=http://llm:8000
+      - ALLOW_ORIGINS=*
+    volumes:
+      - ./sample_audio:/app/sample_audio
+    depends_on:
+      - vad
+      - diarization
+      - stt
+      - emotion
+      - text_sentiment
+      - fusion
+      - llm
+    restart: unless-stopped
