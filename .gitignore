@@ -1,0 +1,13 @@
+cat > .gitignore << 'EOF'
+.env
+
+*.h5
+models/
+services/emotion/models/
+
+node_modules/
+emotion-voice-ai-frontend/node_modules/
+
+.DS_Store
+*.log
+EOF
