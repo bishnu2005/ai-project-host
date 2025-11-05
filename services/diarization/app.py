@@ -1,7 +1,6 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pyannote.audio import Pipeline
-import torch
 import tempfile
 import os
 
@@ -17,15 +16,14 @@ app.add_middleware(
 @app.on_event("startup")
 def load_model():
     global diarization_pipeline
-    HF_TOKEN = os.getenv("HF_TOKEN")
-    diarization_pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization@2.1",
-                                                    use_auth_token=HF_TOKEN)  
-    print(" Diarization model loaded successfully.")
-
+    hf_token = os.getenv("HF_TOKEN", None)
+    diarization_pipeline = Pipeline.from_pretrained(
+        "pyannote/speaker-diarization",
+        use_auth_token=hf_token
+    )
 
 @app.post("/diarize")
 async def diarize_audio(file: UploadFile = File(...)):
-   
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
             tmp_file.write(await file.read())
@@ -52,7 +50,6 @@ async def diarize_audio(file: UploadFile = File(...)):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-
 @app.get("/")
 def root():
-    return {"message": "Diarization service is running "}
+    return {"message": "Diarization service is running"}
