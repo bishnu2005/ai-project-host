@@ -17,18 +17,15 @@ app.add_middleware(
 @app.on_event("startup")
 def load_model():
     global diarization_pipeline
-    HF_TOKEN = os.getenv("HF_TOKEN", "your_hugging_face_token_here")
+    HF_TOKEN = os.getenv("HF_TOKEN")
     diarization_pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization@2.1",
-                                                    use_auth_token=HF_TOKEN)  # use the token
-    print("✅ Diarization model loaded successfully.")
+                                                    use_auth_token=HF_TOKEN)  
+    print(" Diarization model loaded successfully.")
 
 
 @app.post("/diarize")
 async def diarize_audio(file: UploadFile = File(...)):
-    """
-    Accepts an audio file (.wav) and returns diarization results
-    (speaker turns with timestamps).
-    """
+   
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
             tmp_file.write(await file.read())

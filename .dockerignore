@@ -1,0 +1,9 @@
+**/__pycache__/
+*.pyc
+.env
+.env.local
+node_modules
+emotion-voice-ai-frontend/.next
+emotion-voice-ai-frontend/node_modules
+services/emotion/models/*.h5
+models/
